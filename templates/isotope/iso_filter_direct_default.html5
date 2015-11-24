@@ -22,7 +22,7 @@
 
 <?php if ($this->hasAutocomplete): ?>
 <?php $GLOBALS['TL_CSS'][] = \Haste\Util\Debug::uncompressedFile('composer/vendor/filsh/jquery-autocomplete/content/styles.css'); ?>
-<?php $GLOBALS['TL_JAVASCRIPT'][] = 'composer/vendor/filsh/jquery-autocomplete/scripts/jquery.mackjax.js'; ?>
+<?php $GLOBALS['TL_JAVASCRIPT'][] = 'composer/vendor/filsh/jquery-autocomplete/scripts/jquery.mockjax.js'; ?>
 <?php $GLOBALS['TL_JAVASCRIPT'][] = 'composer/vendor/filsh/jquery-autocomplete/src/jquery.autocomplete.js'; ?>
 <script>
 jQuery(document).ready(function(){
