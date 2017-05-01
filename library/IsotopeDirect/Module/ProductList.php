@@ -291,6 +291,12 @@ class ProductList extends Isotope_ProductList
 	    	{
 		    	$strSorting = $arrSortField[0] . ' ' . strtoupper($arrSortField[1]);
 	    	}
+	    	
+	    	// Price sorting isn't on tl_iso_product
+	    	if (strpos(\Input::get('sorting'), 'price') === 0 && (strtolower($arrSortField[1])=='asc' || strtolower($arrSortField[1])=='desc'))
+	    	{
+		    	$strSorting = "(SELECT IFNULL(ppt.price, 0) FROM tl_iso_product_pricetier ppt INNER JOIN tl_iso_product_price pp ON ppt.pid=pp.id WHERE pp.pid=tl_iso_product.id) " . strtoupper($arrSortField[1]);
+	    	}
     	}
     	
     	// Default sorting
