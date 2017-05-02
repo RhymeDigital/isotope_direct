@@ -295,7 +295,7 @@ class ProductList extends Isotope_ProductList
 	    	// Price sorting isn't on tl_iso_product
 	    	if (strpos(\Input::get('sorting'), 'price') === 0 && (strtolower($arrSortField[1])=='asc' || strtolower($arrSortField[1])=='desc'))
 	    	{
-		    	$strSorting = "(SELECT IFNULL(ppt.price, 0) FROM tl_iso_product_pricetier ppt INNER JOIN tl_iso_product_price pp ON ppt.pid=pp.id WHERE pp.pid=tl_iso_product.id) " . strtoupper($arrSortField[1]);
+		    	$strSorting = "(SELECT IFNULL(ppt.price, 0) FROM tl_iso_product_pricetier ppt INNER JOIN tl_iso_product_price pp ON ppt.pid=pp.id WHERE pp.pid=tl_iso_product.id AND pp.config_id IN (".intval(Isotope::getConfig()->id).", 0) ORDER BY pp.config_id DESC LIMIT 0,1) " . strtoupper($arrSortField[1]);
 	    	}
     	}
     	
