@@ -214,8 +214,11 @@ class ProductList extends Isotope_ProductList
         $intTotal = static::countPublishedBy($arrColumns, $arrValues);
 
         // Use number of items too
-        $intTotal = min($this->numberOfItems, $intTotal);
-	
+        if ($this->numberOfItems)
+        {
+            $intTotal = min($this->numberOfItems, $intTotal);
+        }
+
 		//Generate pagination and get offset
 		$offset = $this->generatePagination($intTotal);
 
