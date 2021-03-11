@@ -1,83 +1,76 @@
+<?php $this->extend('block_unsearchable'); ?>
 
-<!-- indexer::stop -->
-<div class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
-<?php if ($this->headline): ?>
-
-<<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
-<?php endif; ?>
+<?php $this->block('content'); ?>
 
 <form action="<?php echo $this->actionFilter; ?>" id="<?php echo $this->formId; ?>" method="post">
-<div class="formbody">
-<input type="hidden" name="FORM_SUBMIT" value="<?php echo $this->formId; ?>">
-<input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}">
+    <div class="formbody">
+        <input type="hidden" name="FORM_SUBMIT" value="<?php echo $this->formId; ?>">
+        <input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}">
 
-<?php if ($this->hasSearch): ?>
-<div class="filtergroup keywords search">
-<h4><?php echo $this->pkeywordsLabel; ?></h4>
-<div class="text_container">
-<input type="text" name="keywords" id="ctrl_keywords_<?php echo $this->id; ?>" class="text" value="<?php echo ($this->keywords ? $this->keywords : $this->defaultSearchText); ?>" onblur="if (this.value=='') { this.value='<?php echo $this->defaultSearchText; ?>'; }" onfocus="if (this.value=='<?php echo $this->defaultSearchText; ?>') { this.value=''; this.select(); }">
-</div>
-</div>
-<?php endif; ?>
+        <?php if ($this->hasSearch): ?>
+            <div class="filtergroup keywords search">
+                <h4><?php echo $this->pkeywordsLabel; ?></h4>
+                <div class="text_container">
+                    <input type="text" name="keywords" id="ctrl_keywords_<?php echo $this->id; ?>" class="text" value="<?php echo ($this->keywords ? $this->keywords : $this->defaultSearchText); ?>" onblur="if (this.value=='') { this.value='<?php echo $this->defaultSearchText; ?>'; }" onfocus="if (this.value=='<?php echo $this->defaultSearchText; ?>') { this.value=''; this.select(); }">
+                </div>
+            </div>
+        <?php endif; ?>
 
-<?php if ($this->hasAutocomplete): ?>
-    <?php if ($this->hasAutocomplete):
-        $GLOBALS['TL_CSS'][] = \Haste\Util\Debug::uncompressedFile('system/modules/isotope/assets/plugins/awesomplete/awesomplete.min.css');
-        ?>
-        <script src="<?php echo \Haste\Util\Debug::uncompressedFile('system/modules/isotope/assets/plugins/awesomplete/awesomplete.min.js'); ?>"></script>
-        <script>
-			Isotope.initAwesomplete(<?= $this->id ?>, document.getElementById('ctrl_keywords_<?php echo $this->id; ?>'));
-        </script>
-    <?php endif; ?>
-<?php endif; ?>
+        <?php if ($this->hasAutocomplete): ?>
+            <?php if ($this->hasAutocomplete):
+                $GLOBALS['TL_CSS'][] = \Haste\Util\Debug::uncompressedFile('system/modules/isotope/assets/plugins/awesomplete/awesomplete.min.css');
+                ?>
+                <script src="<?php echo \Haste\Util\Debug::uncompressedFile('system/modules/isotope/assets/plugins/awesomplete/awesomplete.min.js'); ?>"></script>
+                <script>
+					Isotope.initAwesomplete(<?= $this->id ?>, document.getElementById('ctrl_keywords_<?php echo $this->id; ?>'));
+                </script>
+            <?php endif; ?>
+        <?php endif; ?>
 
-<?php if($this->hasPriceFilter): ?>
-<div class="filtergroup productprice_filter">
-<h4><?php echo $this->ppriceLabel; ?></h4>
-<div class="select_container">
-<select id="price_<?php echo $this->id; ?>" name="pricerange[]" class="select price">
-	<option value=""><?php echo $this->priceBlankLabel; ?></option>
-<?php foreach($this->price as $value => $label): ?>
-	<option value="<?php echo $value; ?>"<?php if($value == $this->priceselected[0]): ?> selected="selected"<?php endif; ?>><?php echo $label; ?></option>
-<?php endforeach; ?>
-</select>
-</div>
-</div>
-<?php endif; ?>
+        <?php if($this->hasPriceFilter): ?>
+            <div class="filtergroup productprice_filter">
+                <h4><?php echo $this->ppriceLabel; ?></h4>
+                <div class="select_container">
+                    <select id="price_<?php echo $this->id; ?>" name="pricerange[]" class="select price">
+                        <option value=""><?php echo $this->priceBlankLabel; ?></option>
+                        <?php foreach($this->price as $value => $label): ?>
+                            <option value="<?php echo $value; ?>"<?php if($value == $this->priceselected[0]): ?> selected="selected"<?php endif; ?>><?php echo $label; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+        <?php endif; ?>
 
-<?php if($this->hasSorting): ?>
-<div class="filtergroup productsorting_filter">
-<h4><?php echo $this->psortLabel; ?></h4>
-<div class="select_container">
-<select id="sort_<?php echo $this->id; ?>" name="sorting" class="select sort">
-<?php foreach($this->sort as $value => $label): ?>
-	<option value="<?php echo $value; ?>"<?php if($value == $this->sortselected): ?> selected="selected"<?php endif; ?>><?php echo $label; ?></option>
-<?php endforeach; ?>
-</select>
-</div>
-</div>
-<?php endif; ?>
+        <?php if($this->hasSorting): ?>
+            <div class="filtergroup productsorting_filter">
+                <h4><?php echo $this->psortLabel; ?></h4>
+                <div class="select_container">
+                    <select id="sort_<?php echo $this->id; ?>" name="sorting" class="select sort">
+                        <?php foreach($this->sort as $value => $label): ?>
+                            <option value="<?php echo $value; ?>"<?php if($value == $this->sortselected): ?> selected="selected"<?php endif; ?>><?php echo $label; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+        <?php endif; ?>
 
-<?php if ($this->hasPerPage): ?>
-<div class="perpage">
-<label for="ctrl_perpage_<?php echo $this->id; ?>"><?php echo $this->perpageLabel; ?></label>
-<select name="perpage" id="ctrl_perpage_<?php echo $this->id; ?>" class="select" onchange="document.getElementById('<?php echo $this->formId; ?>').submit();">
-<?php foreach( $this->perpageOptions as $option ): ?>
-<option value="<?php echo $option['value']; ?>"<?php if($option['default']) echo ' selected="selected"'; ?>><?php echo $option['label']; ?></option>
-<?php endforeach; ?>
-</select>
-</div>
-<?php endif; ?>
+        <?php if ($this->hasPerPage): ?>
+            <div class="perpage">
+                <label for="ctrl_perpage_<?php echo $this->id; ?>"><?php echo $this->perpageLabel; ?></label>
+                <select name="perpage" id="ctrl_perpage_<?php echo $this->id; ?>" class="select" onchange="document.getElementById('<?php echo $this->formId; ?>').submit();">
+                    <?php foreach( $this->perpageOptions as $option ): ?>
+                        <option value="<?php echo $option['value']; ?>"<?php if($option['default']) echo ' selected="selected"'; ?>><?php echo $option['label']; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        <?php endif; ?>
 
-<div class="submit_container"><input type="submit" class="submit" value="<?php echo $this->slabel; ?>"></div>
+        <div class="submit_container"><input type="submit" class="submit" value="<?php echo $this->slabel; ?>"></div>
 
 
-</div>
+    </div>
 </form>
 
 <a href="<?php echo $this->actionClear; ?>" class="clear_filters"><?php echo $this->clearLabel; ?></a>
 
-<div class="clear">&nbsp;</div>
-
-</div>
-<!-- indexer::continue -->
+<?php $this->endblock(); ?>
