@@ -21,20 +21,14 @@
 <?php endif; ?>
 
 <?php if ($this->hasAutocomplete): ?>
-<?php $GLOBALS['TL_CSS'][] = \Haste\Util\Debug::uncompressedFile('composer/vendor/filsh/jquery-autocomplete/content/styles.css'); ?>
-<?php $GLOBALS['TL_JAVASCRIPT'][] = 'composer/vendor/filsh/jquery-autocomplete/scripts/jquery.mockjax.js'; ?>
-<?php $GLOBALS['TL_JAVASCRIPT'][] = 'composer/vendor/filsh/jquery-autocomplete/src/jquery.autocomplete.js'; ?>
-<script>
-jQuery(document).ready(function(){
-	$('#ctrl_keywords_<?php echo $this->id; ?>').autocomplete({
-	    serviceUrl: '<?php echo \Environment::get('request').(strpos(\Environment::get('request'), '?') !== false ? '&' : '?'); ?>iso_autocomplete=<?php echo $this->id; ?>',
-	    triggerSelectOnValidInput: false,
-	    onSelect: function (suggestion) {
-            $('#ctrl_keywords_<?php echo $this->id; ?>').parents('form').submit();
-	    }
-	});
-});
-</script>
+    <?php if ($this->hasAutocomplete):
+        $GLOBALS['TL_CSS'][] = \Haste\Util\Debug::uncompressedFile('system/modules/isotope/assets/plugins/awesomplete/awesomplete.min.css');
+        ?>
+        <script src="<?php echo \Haste\Util\Debug::uncompressedFile('system/modules/isotope/assets/plugins/awesomplete/awesomplete.min.js'); ?>"></script>
+        <script>
+			Isotope.initAwesomplete(<?= $this->id ?>, document.getElementById('ctrl_keywords_<?php echo $this->id; ?>'));
+        </script>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php if($this->hasPriceFilter): ?>

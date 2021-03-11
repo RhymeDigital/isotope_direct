@@ -507,7 +507,7 @@ class ProductList extends Isotope_ProductList
      *
      * @return array
      */
-    protected function findCategories()
+    protected function findCategories(array &$arrFilters = null)
     {
         if (null === $this->arrCategories) {
 
@@ -586,7 +586,7 @@ class ProductList extends Isotope_ProductList
                     break;
             }
 
-            $this->arrCategories = empty($arrCategories) ? array(0) : $arrCategories;
+            $this->arrCategories = empty($arrCategories) ? array(0) : array_map('intval', $arrCategories);
         }
 
         return $this->arrCategories;

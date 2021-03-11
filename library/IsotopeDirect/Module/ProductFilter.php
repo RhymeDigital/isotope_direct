@@ -94,7 +94,7 @@ class ProductFilter extends Isotope_Module
     	$this->loadDataContainer('tl_iso_product');
     	
     	//Get initial categories
-    	$this->arrCategories = $this->findCategories($this->iso_category_scope);
+    	$this->arrCategories = $this->findCategories();
     
     	//Handle requests before generating as we will likely redirect
     	if (\Input::post('FORM_SUBMIT') == $this->strFormIdPrefix . $this->id)
@@ -204,46 +204,25 @@ class ProductFilter extends Isotope_Module
 
     /**
      * Generate ajax
+     *
+     * @throws \Exception
      */
     public function generateAjax()
     {
         if (!\Environment::get('isAjaxRequest')) {
             return;
         }
-		
-		// todo: Use the current filters too...
-        if ($this->iso_searchAutocomplete && \Input::get('iso_autocomplete') == $this->id) 
-        {
-			include_once(TL_ROOT . '/system/modules/isotope_direct/config/stopwords.php');
-	        $arrWhere = array("c.page_id IN (" . implode(',', array_map('intval', $this->findCategories())) . ")");
-	        $arrValues = array();
-	        
-        	$keywords = explode(' ', \Input::get('query'));
-        	for ($i = 0; $i < count($keywords); $i++) 
-        	{
-				$strTerm = trim($keywords[$i]);
-				if (empty($strTerm) || 
-					in_array(strtolower($strTerm), array_map('strtolower', $GLOBALS['KEYWORD_STOP_WORDS'])) || 
-					in_array(strtolower($strTerm), array_map('strtolower', $GLOBALS['KEYWORD_STOP_WORDS'])))
-				{
-    				continue;
-				}
-	        	$arrWhere[] = Product_Model::getTable().".".$this->iso_searchAutocomplete." REGEXP ?";
-	        	$arrValues[] = $strTerm;
-        	}
 
-	        if ($this->iso_list_where != '') {
-	            $arrWhere[] = Haste::getInstance()->call('replaceInsertTags', $this->iso_list_where);
-	        }
-        	
-            $objProducts = Product_Model::findPublishedBy($arrWhere, $arrValues, array('order' => "c.sorting"));
+        if ($this->iso_searchAutocomplete && \Input::get('iso_autocomplete') == $this->id) {
+            $objProducts = Product_Model::findPublishedByCategories($this->findCategories(), ['order' => 'c.sorting']);
 
             if (null === $objProducts) {
-                $objResponse = new JsonResponse(array('suggestions'=>array()));
+                $objResponse = new JsonResponse([]);
                 $objResponse->send();
+                exit;
             }
 
-            $objResponse = new JsonResponse(array('suggestions'=>array_values(array_map('html_entity_decode', $objProducts->fetchEach($this->iso_searchAutocomplete)))));
+            $objResponse = new JsonResponse(array_values($objProducts->fetchEach($this->iso_searchAutocomplete)));
             $objResponse->send();
         }
     }
@@ -254,7 +233,7 @@ class ProductFilter extends Isotope_Module
      *
      * @return array
      */
-    protected function findCategories()
+    protected function findCategories(array &$arrFilters = null)
     {
         if (null === $this->arrCategories) {
 
