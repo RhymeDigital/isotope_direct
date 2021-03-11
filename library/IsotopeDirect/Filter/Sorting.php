@@ -100,7 +100,7 @@ class Sorting extends Filter implements IsotopeDirectFilter
             foreach ($GLOBALS['ISO_HOOKS']['sortingLabels'] as $callback)
             {
                 $objCallback = \System::importStatic($callback[0]);
-                $varReturn = $objCallback->$callback[1]($field, $arrData, null);
+                $varReturn = $objCallback->{$callback[1]}($field, $arrData, null);
                 
                 if ($varReturn !== false)
                 {

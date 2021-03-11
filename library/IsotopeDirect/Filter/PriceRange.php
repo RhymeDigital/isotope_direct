@@ -43,7 +43,7 @@ class PriceRange extends Filter implements IsotopeDirectFilter
             foreach ($GLOBALS['ISO_HOOKS']['getFilterPriceRanges'] as $callback)
             {
                 $objCallback = \System::importStatic($callback[0]);
-                $arrRanges = $objCallback->$callback[1]($arrRanges, $arrCategories, $objTemplate, $objModule, $blnGenURL);
+                $arrRanges = $objCallback->{$callback[1]}($arrRanges, $arrCategories, $objTemplate, $objModule, $blnGenURL);
             }
         }
 
