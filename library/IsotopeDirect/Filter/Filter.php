@@ -14,6 +14,9 @@ namespace IsotopeDirect\Filter;
 use Contao\Cache;
 use Contao\Database;
 use Contao\Controller;
+use Contao\StringUtil;
+use Haste\Util\Format as HasteFormat;
+use Haste\Util\InsertTag as HasteInsertTag;
 use IsotopeDirect\Interfaces\IsotopeDirectFilter;
 use Isotope\Model\Product;
 use Isotope\Model\ProductCategory;
@@ -80,6 +83,7 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
     	{
 	        $t = Product::getTable();
 	        $arrAvailable = array();
+	        $objModule = $arrOptions['module'] ?: null;
 	        
 	        if(!is_array($arrCategories) || empty($arrCategories))
 	        {
@@ -94,6 +98,10 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
 	            $strQuery .= " AND $t.published='1' AND ($t.start='' OR $t.start<$time) AND ($t.stop='' OR $t.stop>$time)";
 	        }
 
+            if ($objModule !== null && $objModule->iso_list_where != '') {
+                $strQuery .= " AND " . HasteInsertTag::replaceRecursively($objModule->iso_list_where);
+            }
+
 	        $objResult = Database::getInstance()->execute($strQuery);
 	        
 	        if ($objResult->numRows)
@@ -102,9 +110,12 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
 		        {
 			        if (strlen($objResult->{static::$strKey}) && !in_array($objResult->{static::$strKey}, $arrAvailable))
 			        {
-				        $arrAvailable[specialchars($objResult->{static::$strKey})] = $objResult->{static::$strKey};
+                        $varLabel = HasteFormat::dcaValue('tl_iso_product', static::$strKey, $objResult->{static::$strKey});
+				        $arrAvailable[StringUtil::specialchars($objResult->{static::$strKey})] = strval($varLabel);
 			        }
 		        }
+
+                $arrAvailable = array_unique($arrAvailable);
 	        }
 	        
 	        ksort($arrAvailable);
