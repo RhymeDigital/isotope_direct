@@ -302,7 +302,7 @@ class ProductFilter extends Isotope_Module
                     if (isset($GLOBALS['ISO_HOOKS']['findCategories']) && is_array($GLOBALS['ISO_HOOKS']['findCategories'])) {
                         foreach ($GLOBALS['ISO_HOOKS']['findCategories'] as $callback) {
                             $objCallback   = \System::importStatic($callback[0]);
-                            $arrCategories = $objCallback->$callback[1]($this);
+                            $arrCategories = $objCallback->{$callback[1]}($this);
 
                             if ($arrCategories !== false) {
                                 break;

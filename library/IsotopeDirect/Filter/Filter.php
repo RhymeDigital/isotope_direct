@@ -11,6 +11,8 @@
 
 namespace IsotopeDirect\Filter;
 
+use Contao\Cache;
+use Contao\Database;
 use Contao\Controller;
 use IsotopeDirect\Interfaces\IsotopeDirectFilter;
 use Isotope\Model\Product;
@@ -70,11 +72,11 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
      * @param   array
      * @return  array
      */
-    public static function findAllAvailable(&$arrCategories)
+    public static function findAllAvailable(&$arrCategories, $arrOptions=[])
     {
     	$strHash = md5(implode(',', $arrCategories));
     	
-    	if (!\Cache::has(static::$strKey . '-' . $strHash))
+    	if (!Cache::has(static::$strKey . '-' . $strHash))
     	{
 	        $t = Product::getTable();
 	        $arrAvailable = array();
@@ -92,7 +94,7 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
 	            $strQuery .= " AND $t.published='1' AND ($t.start='' OR $t.start<$time) AND ($t.stop='' OR $t.stop>$time)";
 	        }
 
-	        $objResult = \Database::getInstance()->execute($strQuery);
+	        $objResult = Database::getInstance()->execute($strQuery);
 	        
 	        if ($objResult->numRows)
 	        {
@@ -107,10 +109,10 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
 	        
 	        ksort($arrAvailable);
 	        	        
-	        \Cache::set(static::$strKey . '-' . $strHash, $arrAvailable);
+	        Cache::set(static::$strKey . '-' . $strHash, $arrAvailable);
 	    }
 				
-        return \Cache::get(static::$strKey . '-' . $strHash);
+        return Cache::get(static::$strKey . '-' . $strHash);
     }
     
 	
@@ -123,7 +125,7 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
 	{
     	$strHash = md5(implode(',', $arrCategories));
     	
-    	if (!\Cache::has('category-products-' . $strHash))
+    	if (!Cache::has('category-products-' . $strHash))
     	{
 	        $c = ProductCategory::getTable();
 	        
@@ -134,12 +136,12 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
 	        
 	        $strQuery = "SELECT pid AS `product_id` FROM $c WHERE $c.page_id IN (" . implode(',', $arrCategories) . ")";
 	        
-	        $arrIds = \Database::getInstance()->prepare($strQuery)->executeUncached()->fetchEach('product_id');
+	        $arrIds = Database::getInstance()->prepare($strQuery)->execute()->fetchEach('product_id');
 	        
-	        \Cache::set('category-products-' . $strHash, (empty($arrIds) ? array(0) : $arrIds));
+	        Cache::set('category-products-' . $strHash, (empty($arrIds) ? array(0) : $arrIds));
 	    }
 	    
-        return \Cache::get('category-products-' . $strHash);
+        return Cache::get('category-products-' . $strHash);
 	}
 
 }
