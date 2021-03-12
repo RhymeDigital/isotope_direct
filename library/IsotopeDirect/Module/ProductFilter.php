@@ -12,13 +12,18 @@
 
 namespace IsotopeDirect\Module;
 
-use IsotopeDirect\Filter\Filter;
-
+use Contao\Controller;
+use Contao\PageModel;
+use Contao\StringUtil;
+use Contao\Environment;
+use Contao\BackendTemplate;
 use Isotope\Isotope;
 use Isotope\Model\Product as Product_Model;
 use Isotope\Module\Module as Isotope_Module;
 use Haste\Haste;
 use Haste\Http\Response\JsonResponse;
+use IsotopeDirect\Filter\Filter;
+use IsotopeDirect\Interfaces\IsotopeDirectFilter;
 
 
 /**
@@ -49,12 +54,13 @@ class ProductFilter extends Isotope_Module
     /**
      * Display a wildcard in the back end
      * @return string
+     * @throws \Exception
      */
     public function generate()
     {
         if (TL_MODE == 'BE')
         {
-            $objTemplate = new \BackendTemplate('be_wildcard');
+            $objTemplate = new BackendTemplate('be_wildcard');
             $objTemplate->wildcard = '### ISOTOPE ECOMMERCE: PRODUCT FILTERS - DIRECT ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
@@ -105,7 +111,7 @@ class ProductFilter extends Isotope_Module
 		//Generate the filters if there are no request redirects
     	$objTemplate = $this->Template;
     	
-    	$arrFilterTypes = deserialize($this->iso_filterTypes, true);
+    	$arrFilterTypes = StringUtil::deserialize($this->iso_filterTypes, true);
     	
     	foreach ($arrFilterTypes as $filterType)
     	{
@@ -113,7 +119,8 @@ class ProductFilter extends Isotope_Module
 	    	{
 		    	continue;
 	    	}
-	    	
+
+	    	/** @var IsotopeDirectFilter $strClass */
 			$strClass = $GLOBALS['PRODUCT_FILTERS'][$filterType]['class'];
 			
 			if (!class_exists($strClass))
@@ -127,7 +134,7 @@ class ProductFilter extends Isotope_Module
     	$this->Template = $objTemplate;
         $this->Template->id = $this->id;
         $this->Template->formId = $this->strFormIdPrefix . $this->id;
-        $this->Template->actionClear = \Controller::generateFrontendUrl($objPage->row());
+        $this->Template->actionClear = Controller::generateFrontendUrl($objPage->row());
         $this->Template->clearLabel = $GLOBALS['TL_LANG']['MSC']['clearFiltersLabel'];
         $this->Template->slabel = $GLOBALS['TL_LANG']['MSC']['submitLabel'];
     }
@@ -145,13 +152,13 @@ class ProductFilter extends Isotope_Module
     	}
     	else
     	{
-	    	$objPage = \PageModel::findWithDetails($this->jumpTo);
+	    	$objPage = PageModel::findWithDetails($this->jumpTo);
     	}
     	
     	$arrRedirectParams = array();
     	$strRedirectParams = '';
     	
-    	$arrFilterTypes = deserialize($this->iso_filterTypes, true);
+    	$arrFilterTypes = StringUtil::deserialize($this->iso_filterTypes, true);
     	
     	// Loop through each filter type to get the URL params
     	foreach ($arrFilterTypes as $filterType)
@@ -160,7 +167,8 @@ class ProductFilter extends Isotope_Module
 	    	{
 		    	continue;
 	    	}
-	    	
+
+            /** @var IsotopeDirectFilter $strClass */
 			$strClass = $GLOBALS['PRODUCT_FILTERS'][$filterType]['class'];
 			
 			if (!class_exists($strClass))
@@ -189,9 +197,9 @@ class ProductFilter extends Isotope_Module
     	
     	$strRedirectParams = implode('/', $arrRedirectParams);
   	
-    	$strRedirect = \Controller::generateFrontendUrl($objPage->row(), (strlen($strRedirectParams) ? '/' . $strRedirectParams : null) );
+    	$strRedirect = Controller::generateFrontendUrl($objPage->row(), (strlen($strRedirectParams) ? '/' . $strRedirectParams : null) );
     	
-    	\Controller::redirect($strRedirect);
+    	Controller::redirect($strRedirect);
     }
 
 
@@ -209,7 +217,7 @@ class ProductFilter extends Isotope_Module
      */
     public function generateAjax()
     {
-        if (!\Environment::get('isAjaxRequest')) {
+        if (!Environment::get('isAjaxRequest')) {
             return;
         }
 
@@ -238,12 +246,12 @@ class ProductFilter extends Isotope_Module
         if (null === $this->arrCategories) {
 
             if ($this->defineRoot && $this->rootPage > 0) {
-                $objPage = \PageModel::findWithDetails($this->rootPage);
+                $objPage = PageModel::findWithDetails($this->rootPage);
             } else {
                 global $objPage;
             }
 
-            $t = \PageModel::getTable();
+            $t = PageModel::getTable();
             $arrCategories = null;
             $arrUnpublished = array();
             $strWhere = "$t.type!='error_403' AND $t.type!='error_404'";
