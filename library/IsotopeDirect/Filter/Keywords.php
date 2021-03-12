@@ -11,6 +11,9 @@
 
 namespace IsotopeDirect\Filter;
 
+use Contao\Input;
+use Contao\Template;
+use Contao\Module;
 use IsotopeDirect\Interfaces\IsotopeDirectFilter;
 
 /**
@@ -25,24 +28,23 @@ class Keywords extends Filter implements IsotopeDirectFilter
 	 * @var string
 	 */
 	protected static $strKey = 'keywords';
-	
 
-	/**
+    /**
      * Add this filter to the module's template or get the URL params
-     * @param   array
-     * @param   Contao\Template
-     * @param   Contao\Module
-     * @param   boolean
-     * @return  mixed string|bool|void
+     * @param array $arrCategories
+     * @param Template $objTemplate
+     * @param Module $objModule
+     * @param bool $blnGenURL
+     * @return bool|mixed|string
      */
-	public static function generateFilter(&$arrCategories, &$objTemplate, $objModule, $blnGenURL=false)
+    public static function generateFilter(array &$arrCategories, Template &$objTemplate, Module $objModule, bool $blnGenURL=false)
 	{
     	if($blnGenURL)
     	{
 	    	// Return the URL fragment needed for this filter to pass to the lister
-	    	if((\Input::post(static::$strKey)) && trim(\Input::post(static::$strKey)) != $GLOBALS['TL_LANG']['MSC']['defaultSearchText'])
+	    	if ((Input::post(static::$strKey)) && trim(Input::post(static::$strKey)) != $GLOBALS['TL_LANG']['MSC']['defaultSearchText'])
 	    	{
-		    	return static::$strKey . '/' . urlencode(Filter::cleanChars(\Input::post(static::$strKey)));
+		    	return static::$strKey . '/' . urlencode(Filter::cleanChars(Input::post(static::$strKey)));
 	    	}
 	    	
 	    	return false;
@@ -50,7 +52,7 @@ class Keywords extends Filter implements IsotopeDirectFilter
     	
 		$objTemplate->hasSearch = true;
 		$objTemplate->hasAutocomplete = strlen($objModule->iso_searchAutocomplete) ? true : false;
-		$objTemplate->keywords = htmlentities(Filter::uncleanChars(\Input::get(static::$strKey)));
+		$objTemplate->keywords = htmlentities(Filter::uncleanChars(Input::get(static::$strKey)));
 		$objTemplate->pkeywordsLabel = $GLOBALS['TL_LANG']['MSC'][static::$strKey.'FilterLabel'];
 		$objTemplate->defaultSearchText = $GLOBALS['TL_LANG']['MSC']['defaultSearchText'];
 

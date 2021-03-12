@@ -1,16 +1,18 @@
 <?php
 
 /**
- * Copyright (C) 2015 Rhyme Digital, LLC
+ * Copyright (C) 2021 Rhyme Digital, LLC
  *
  * @author		Blair Winans <blair@rhyme.digital>
  * @author		Adam Fisher <adam@rhyme.digital>
- * @link		http://rhyme.digital
+ * @link		https://rhyme.digital
  * @license		http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
 namespace IsotopeDirect\Filter;
 
+use Contao\Template;
+use Contao\Module;
 use IsotopeDirect\Interfaces\IsotopeDirectFilter;
 
 /**
@@ -25,15 +27,15 @@ class PriceRange extends Filter implements IsotopeDirectFilter
 	 */
 	protected static $strKey = 'pricerange';
 
-	/**
+    /**
      * Add this filter to the module's template or get the URL params
-     * @param   array
-     * @param   Contao\Template
-     * @param   Contao\Module
-     * @param   boolean
-     * @return  mixed string|bool|void
+     * @param array $arrCategories
+     * @param Template $objTemplate
+     * @param Module $objModule
+     * @param bool $blnGenURL
+     * @return bool|mixed|string
      */
-	public static function generateFilter(&$arrCategories, &$objTemplate, $objModule, $blnGenURL=false)
+	public static function generateFilter(array &$arrCategories, Template &$objTemplate, Module $objModule, bool $blnGenURL=false)
 	{
         $arrRanges = static::getPriceRanges();
 

@@ -12,6 +12,9 @@
 
 namespace IsotopeDirect\Module;
 
+use Contao\Input;
+use Contao\System;
+use Contao\Database;
 use Contao\Controller;
 use Contao\PageModel;
 use Contao\StringUtil;
@@ -73,7 +76,7 @@ class ProductFilter extends Isotope_Module
         $this->generateAjax();
 
         // Hide filters in reader mode if the respective setting is enabled
-        if ($this->iso_hide_list && \Input::get('product') != '')
+        if ($this->iso_hide_list && Input::get('product') != '')
         {
             return '';
         }
@@ -103,7 +106,7 @@ class ProductFilter extends Isotope_Module
     	$this->arrCategories = $this->findCategories();
     
     	//Handle requests before generating as we will likely redirect
-    	if (\Input::post('FORM_SUBMIT') == $this->strFormIdPrefix . $this->id)
+    	if (Input::post('FORM_SUBMIT') == $this->strFormIdPrefix . $this->id)
     	{
     		$this->handleRequests();
 		}
@@ -176,7 +179,7 @@ class ProductFilter extends Isotope_Module
 				continue;
 			}
 	    	
-	    	$varReturn = $strClass::generateFilter($this->arrCategories, $objTemplate, $this, true);
+	    	$varReturn = $strClass::generateFilter($this->arrCategories, $this->Template, $this, true);
 	    	
 	    	if(!empty($varReturn))
 	    	{
@@ -189,9 +192,9 @@ class ProductFilter extends Isotope_Module
     	
     	foreach ($arrKeys as $key)
     	{
-	    	if (\Input::get($key))
+	    	if (Input::get($key))
 	    	{
-	    		$arrRedirectParams[] = $key . '/' . Filter::uncleanChars(\Input::get($key));
+	    		$arrRedirectParams[] = $key . '/' . Filter::uncleanChars(Input::get($key));
 	    	}
     	}
     	
@@ -221,7 +224,7 @@ class ProductFilter extends Isotope_Module
             return;
         }
 
-        if ($this->iso_searchAutocomplete && \Input::get('iso_autocomplete') == $this->id) {
+        if ($this->iso_searchAutocomplete && Input::get('iso_autocomplete') == $this->id) {
             $objProducts = Product_Model::findPublishedByCategories($this->findCategories(), ['order' => 'c.sorting']);
 
             if (null === $objProducts) {
@@ -258,7 +261,7 @@ class ProductFilter extends Isotope_Module
 
             if (!BE_USER_LOGGED_IN) {
                 $time = time();
-                $objUnpublished = \PageModel::findBy(array("($t.start!='' AND $t.start>$time) OR ($t.stop!='' AND $t.stop<$time) OR $t.published=?"), array(''));
+                $objUnpublished = PageModel::findBy(array("($t.start!='' AND $t.start>$time) OR ($t.stop!='' AND $t.stop<$time) OR $t.published=?"), array(''));
                 $arrUnpublished = $objUnpublished->fetchEach('id');
                 //$strWhere .= " AND ($t.start='' OR $t.start<$time) AND ($t.stop='' OR $t.stop>$time) AND $t.published='1'";
             }
@@ -267,18 +270,18 @@ class ProductFilter extends Isotope_Module
 
                 case 'global':
                     $arrCategories = array($objPage->rootId);
-                    $arrCategories = \Database::getInstance()->getChildRecords($objPage->rootId, 'tl_page', false, $arrCategories, $strWhere);
+                    $arrCategories = Database::getInstance()->getChildRecords($objPage->rootId, 'tl_page', false, $arrCategories, $strWhere);
                     $arrCategories = array_diff($arrCategories, $arrUnpublished);
                     break;
 
                 case 'current_and_first_child':
-                    $arrCategories   = \Database::getInstance()->execute("SELECT id FROM tl_page WHERE pid={$objPage->id} AND $strWhere")->fetchEach('id');
+                    $arrCategories   = Database::getInstance()->execute("SELECT id FROM tl_page WHERE pid={$objPage->id} AND $strWhere")->fetchEach('id');
                     $arrCategories[] = $objPage->id;
                     break;
 
                 case 'current_and_all_children':
                     $arrCategories = array($objPage->id);
-                    $arrCategories = \Database::getInstance()->getChildRecords($objPage->id, 'tl_page', false, $arrCategories, $strWhere);
+                    $arrCategories = Database::getInstance()->getChildRecords($objPage->id, 'tl_page', false, $arrCategories, $strWhere);
                     $arrCategories = array_diff($arrCategories, $arrUnpublished);
                     break;
 
@@ -309,7 +312,7 @@ class ProductFilter extends Isotope_Module
                 default:
                     if (isset($GLOBALS['ISO_HOOKS']['findCategories']) && is_array($GLOBALS['ISO_HOOKS']['findCategories'])) {
                         foreach ($GLOBALS['ISO_HOOKS']['findCategories'] as $callback) {
-                            $objCallback   = \System::importStatic($callback[0]);
+                            $objCallback   = System::importStatic($callback[0]);
                             $arrCategories = $objCallback->{$callback[1]}($this);
 
                             if ($arrCategories !== false) {

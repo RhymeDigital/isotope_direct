@@ -11,6 +11,10 @@
 
 namespace IsotopeDirect\Filter;
 
+use Contao\Input;
+use Contao\Template;
+use Contao\Module;
+use Contao\StringUtil;
 use IsotopeDirect\Interfaces\IsotopeDirectFilter;
 
 /**
@@ -26,23 +30,24 @@ class PerPage extends Filter implements IsotopeDirectFilter
 	 */
 	protected static $strKey = 'perpage';
 
-	/**
+    /**
      * Add this filter to the module's template or get the URL params
-     * @param   array
-     * @param   Contao\Template
-     * @param   Contao\Module
-     * @param   boolean
-     * @return  mixed (redirect params or false)
+     * @param array $arrCategories
+     * @param Template $objTemplate
+     * @param Module $objModule
+     * @param bool $blnGenURL
+     * @return bool|mixed|string
      */
-	public static function generateFilter(&$arrCategories, &$objTemplate, $objModule, $blnGenURL=false)
+    public static function generateFilter(array &$arrCategories, Template &$objTemplate, Module $objModule, bool $blnGenURL=false)
+
 	{        
     	if ($blnGenURL)
     	{
-	        $arrLimit   = array_map('intval', trimsplit(',', $objModule->iso_perPage));
+	        $arrLimit = array_map('intval', StringUtil::trimsplit(',', $objModule->iso_perPage));
 	        
-	        if (\Input::post(static::$strKey) && in_array(\Input::post(static::$strKey), $arrLimit))
+	        if (Input::post(static::$strKey) && in_array(Input::post(static::$strKey), $arrLimit))
 	        {
-		    	return static::$strKey . '/' . \Input::post(static::$strKey);
+		    	return static::$strKey . '/' . Input::post(static::$strKey);
 	        }
     		
 	    	return false;
@@ -50,7 +55,7 @@ class PerPage extends Filter implements IsotopeDirectFilter
 
         $objTemplate->hasPerPage = false;
         $arrOptions = array();
-        $arrLimit   = array_map('intval', trimsplit(',', $objModule->iso_perPage));
+        $arrLimit   = array_map('intval', StringUtil::trimsplit(',', $objModule->iso_perPage));
         
         if (!empty($arrLimit))
         {
@@ -62,7 +67,7 @@ class PerPage extends Filter implements IsotopeDirectFilter
 	            (
 	                'label'   => $limit,
 	                'value'   => $limit,
-	                'default' => !\Input::get('perpage') && $i == 0 ? '1' : (\Input::get('perpage') == $limit ? '1' : ''),
+	                'default' => !Input::get('perpage') && $i == 0 ? '1' : (Input::get('perpage') == $limit ? '1' : ''),
 	            );
 	        }
 

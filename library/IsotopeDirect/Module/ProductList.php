@@ -12,12 +12,21 @@
  
 namespace IsotopeDirect\Module;
 
+use Contao\Input;
+use Contao\System;
+use Contao\Environment;
+use Contao\Controller;
+use Contao\Database;
+use Contao\Pagination;
+use Contao\StringUtil;
+use Contao\PageModel;
+use Contao\BackendTemplate;
 use Contao\Model\QueryBuilder;
 
-use IsotopeDirect\Filter\Filter;
+use IsotopeDirect\Filter\Filter as IsotopeDirectFilter;
 
 use Haste\Haste;
-use Haste\Input\Input;
+use Haste\Input\Input as HasteInput;
 use Haste\Generator\RowClass;
 use Haste\Http\Response\HtmlResponse;
 
@@ -54,7 +63,7 @@ class ProductList extends Isotope_ProductList
     {
         if (TL_MODE == 'BE')
         {
-            $objTemplate = new \BackendTemplate('be_wildcard');
+            $objTemplate = new BackendTemplate('be_wildcard');
             $objTemplate->wildcard = '### ISOTOPE ECOMMERCE: PRODUCT LIST - DIRECT ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
@@ -70,9 +79,9 @@ class ProductList extends Isotope_ProductList
             return '';
         }
         
-        if (is_numeric(\Input::get('perpage')) && intval(\Input::get('perpage')))
+        if (is_numeric(Input::get('perpage')) && intval(Input::get('perpage')))
         {
-	        $this->perPage = intval(\Input::get('perpage'));
+	        $this->perPage = intval(Input::get('perpage'));
         }
 
         return parent::generate();
@@ -86,7 +95,7 @@ class ProductList extends Isotope_ProductList
      */
     public function generateAjax()
     {
-        $objItem = Isotope_Frontend::getProduct(\Input::get('item'));
+        $objItem = Isotope_Frontend::getProduct(Input::get('item'));
 
         if ($objItem !== null)
         {
@@ -132,7 +141,7 @@ class ProductList extends Isotope_ProductList
                 'jumpTo'        => $this->findJumpToPage($objProduct),
             );
 
-            if (\Environment::get('isAjaxRequest') && \Input::post('AJAX_MODULE') == $this->id && \Input::post('AJAX_PRODUCT') == $objProduct->getProductId()) {
+            if (Environment::get('isAjaxRequest') && Input::post('AJAX_MODULE') == $this->id && Input::post('AJAX_PRODUCT') == $objProduct->getProductId()) {
                 $objResponse = new HtmlResponse($objProduct->generate($arrConfig));
                 $objResponse->send();
             }
@@ -140,11 +149,11 @@ class ProductList extends Isotope_ProductList
             $objProduct->mergeRow($arrDefaultOptions);
 
             // Must be done after setting options to generate the variant config into the URL
-            if ($this->iso_jump_first && \Haste\Input\Input::getAutoItem('product') == '') {
-                \Controller::redirect($objProduct->generateUrl($arrConfig['jumpTo']));
+            if ($this->iso_jump_first && HasteInput::getAutoItem('product') == '') {
+                Controller::redirect($objProduct->generateUrl($arrConfig['jumpTo']));
             }
 
-            $arrCSS = deserialize($objProduct->cssID, true);
+            $arrCSS = StringUtil::deserialize($objProduct->cssID, true);
 
             $arrBuffer[] = array(
                 'cssID'     => ($arrCSS[0] != '') ? ' id="' . $arrCSS[0] . '"' : '',
@@ -157,7 +166,7 @@ class ProductList extends Isotope_ProductList
         // HOOK: to add any product field or attribute to mod_iso_productlist template
         if (isset($GLOBALS['ISO_HOOKS']['generateProductList']) && is_array($GLOBALS['ISO_HOOKS']['generateProductList'])) {
             foreach ($GLOBALS['ISO_HOOKS']['generateProductList'] as $callback) {
-                $objCallback = \System::importStatic($callback[0]);
+                $objCallback = System::importStatic($callback[0]);
                 $arrBuffer   = $objCallback->{$callback[1]}($arrBuffer, $arrProducts, $this->Template, $this);
             }
         }
@@ -254,7 +263,7 @@ class ProductList extends Isotope_ProductList
         // Add pagination
         if ($this->perPage > 0 && $total > 0)
         {
-            $page = \Input::get('page') ? \Input::get('page') : 1;
+            $page = Input::get('page') ? Input::get('page') : 1;
 
             // Check the maximum page number
             if ($page > ($total/$this->perPage))
@@ -264,7 +273,7 @@ class ProductList extends Isotope_ProductList
 
             $offset = ($page - 1) * $this->perPage;
 
-            $objPagination = new \Pagination($total, $this->perPage);
+            $objPagination = new Pagination($total, $this->perPage);
             $this->Template->pagination = $objPagination->generate("\n  ");
 
             return $offset;
@@ -288,18 +297,18 @@ class ProductList extends Isotope_ProductList
     	$blnDefaultSort = false;
     	
     	// Sorting
-    	if (\Input::get('sorting'))
+    	if (Input::get('sorting'))
     	{
-    		$arrSortField = explode('-', \Input::get('sorting'));
+    		$arrSortField = explode('-', Input::get('sorting'));
     		
 	    	// Needs to be a field value in tl_iso_product and either be asc or desc
-	    	if (\Database::getInstance()->fieldExists($arrSortField[0], Product_Model::getTable()) && (strtolower($arrSortField[1])=='asc' || strtolower($arrSortField[1])=='desc'))
+	    	if (Database::getInstance()->fieldExists($arrSortField[0], Product_Model::getTable()) && (strtolower($arrSortField[1])=='asc' || strtolower($arrSortField[1])=='desc'))
 	    	{
 		    	$strSorting = $arrSortField[0] . ' ' . strtoupper($arrSortField[1]);
 	    	}
 	    	
 	    	// Price sorting isn't on tl_iso_product
-	    	if (strpos(\Input::get('sorting'), 'price') === 0 && (strtolower($arrSortField[1])=='asc' || strtolower($arrSortField[1])=='desc'))
+	    	if (strpos(Input::get('sorting'), 'price') === 0 && (strtolower($arrSortField[1])=='asc' || strtolower($arrSortField[1])=='desc'))
 	    	{
 		    	$strSorting = "(SELECT IFNULL(ppt.price, 0) FROM tl_iso_product_pricetier ppt INNER JOIN tl_iso_product_price pp ON ppt.pid=pp.id WHERE pp.pid=tl_iso_product.id AND pp.config_id IN (".intval(Isotope::getConfig()->id).", 0) ORDER BY pp.config_id DESC LIMIT 0,1) " . strtoupper($arrSortField[1]);
 	    	}
@@ -314,14 +323,14 @@ class ProductList extends Isotope_ProductList
     	}
 
     	// Price range
-    	if (\Input::get('pricerange'))
+    	if (Input::get('pricerange'))
     	{
     		$arrTempWhere = array();
-    		$arrGet = array_map(array('IsotopeDirect\Filter\Filter', 'uncleanChars'), explode(',', \Input::get('pricerange')));
+    		$arrGet = array_map(array(IsotopeDirectFilter::class, 'uncleanChars'), explode(',', Input::get('pricerange')));
     		
     		foreach ($arrGet as $get)
     		{
-	    		$arrRange = trimsplit('to', $get);
+	    		$arrRange = StringUtil::trimsplit('to', $get);
 	    		
 	    		if (empty($arrRange))
 	    		{
@@ -341,7 +350,7 @@ class ProductList extends Isotope_ProductList
 			    	$strRangeWhere .= " AND pt.price < " . intval($arrRange[1]);
 	    		}
 	    		
-	    		$objResult = \Database::getInstance()->executeUncached($strRangeWhere);
+	    		$objResult = Database::getInstance()->executeUncached($strRangeWhere);
 	    		
 	    		if ($objResult->numRows)
 	    		{
@@ -360,7 +369,7 @@ class ProductList extends Isotope_ProductList
 		$arrSortValues = array();
     	
     	// Keywords
-    	if (\Input::get('keywords'))
+    	if (Input::get('keywords'))
     	{
     		$arrFields = deserialize($this->iso_searchFields, true);
     		
@@ -369,7 +378,7 @@ class ProductList extends Isotope_ProductList
     			$where = array();
     			include_once(TL_ROOT . '/system/modules/isotope_direct/config/stopwords.php');
     			
-	    		$arrKeywords = array_map(array('IsotopeDirect\Filter\Filter', 'uncleanChars'), explode(',', \Input::get('keywords')));
+	    		$arrKeywords = array_map(array(IsotopeDirectFilter::class, 'uncleanChars'), explode(',', Input::get('keywords')));
     			
     			foreach ($arrKeywords as $keyword)
     			{
@@ -392,7 +401,7 @@ class ProductList extends Isotope_ProductList
 			    		}
 	    			}
 	    			
-			    	// Do relevancy sorting
+			    	// Do relevance sorting
 	    			$intPriority = 1;
 		    		foreach ($arrFields as $field)
 		    		{
@@ -425,7 +434,7 @@ class ProductList extends Isotope_ProductList
         {
             foreach ($GLOBALS['ISO_HOOKS']['processFiltersAndSorting'] as $callback)
             {
-                $objCallback = \System::importStatic($callback[0]);
+                $objCallback = System::importStatic($callback[0]);
                 list($arrValues, $arrWhere, $strSorting) = $objCallback->{$callback[1]}($arrValues, $arrWhere, $strSorting, $this->findCategories(), $this);
             }
         }
@@ -459,7 +468,7 @@ class ProductList extends Isotope_ProductList
      * @param   mixed
      * @param   mixed
      * @param   array
-     * @return  \Contao\Collection
+     * @return  int
      */
     public static function countPublishedBy($arrColumns, $arrValues, $arrOptions=array())
     {
@@ -486,14 +495,14 @@ class ProductList extends Isotope_ProductList
         $strQuery = QueryBuilder::find($arrFind);
         $strQuery = static::replaceSectionsOfString($strQuery, "SELECT ", "FROM ", "SELECT $p.id FROM ", true, false);
         
-        $arrIDs = \Database::getInstance()->prepare($strQuery)->execute($arrValues)->fetchEach('id');
+        $arrIDs = Database::getInstance()->prepare($strQuery)->execute($arrValues)->fetchEach('id');
         
         // !HOOK: custom actions
         if (isset($GLOBALS['ISO_HOOKS']['passFoundProducts']) && is_array($GLOBALS['ISO_HOOKS']['passFoundProducts']))
         {
             foreach ($GLOBALS['ISO_HOOKS']['passFoundProducts'] as $callback)
             {
-                $objCallback = \System::importStatic($callback[0]);
+                $objCallback = System::importStatic($callback[0]);
                 $objCallback->{$callback[1]}($arrIDs);
             }
         }
@@ -512,19 +521,19 @@ class ProductList extends Isotope_ProductList
 //        if (null === $this->arrCategories) {
 //
 //            if ($this->defineRoot && $this->rootPage > 0) {
-//                $objPage = \PageModel::findWithDetails($this->rootPage);
+//                $objPage = PageModel::findWithDetails($this->rootPage);
 //            } else {
 //                global $objPage;
 //            }
 //
-//            $t = \PageModel::getTable();
+//            $t = PageModel::getTable();
 //            $arrCategories = null;
 //            $arrUnpublished = array();
 //            $strWhere = "$t.type!='error_403' AND $t.type!='error_404'";
 //
 //            if (!BE_USER_LOGGED_IN) {
 //                $time = time();
-//                $objUnpublished = \PageModel::findBy(array("($t.start!='' AND $t.start>$time) OR ($t.stop!='' AND $t.stop<$time) OR $t.published=?"), array(''));
+//                $objUnpublished = PageModel::findBy(array("($t.start!='' AND $t.start>$time) OR ($t.stop!='' AND $t.stop<$time) OR $t.published=?"), array(''));
 //                $arrUnpublished = $objUnpublished->fetchEach('id');
 //                //$strWhere .= " AND ($t.start='' OR $t.start<$time) AND ($t.stop='' OR $t.stop>$time) AND $t.published='1'";
 //            }
@@ -533,18 +542,18 @@ class ProductList extends Isotope_ProductList
 //
 //                case 'global':
 //                    $arrCategories = array($objPage->rootId);
-//                    $arrCategories = \Database::getInstance()->getChildRecords($objPage->rootId, 'tl_page', false, $arrCategories, $strWhere);
+//                    $arrCategories = Database::getInstance()->getChildRecords($objPage->rootId, 'tl_page', false, $arrCategories, $strWhere);
 //                    $arrCategories = array_diff($arrCategories, $arrUnpublished);
 //                    break;
 //
 //                case 'current_and_first_child':
-//                    $arrCategories   = \Database::getInstance()->execute("SELECT id FROM tl_page WHERE pid={$objPage->id} AND $strWhere")->fetchEach('id');
+//                    $arrCategories   = Database::getInstance()->execute("SELECT id FROM tl_page WHERE pid={$objPage->id} AND $strWhere")->fetchEach('id');
 //                    $arrCategories[] = $objPage->id;
 //                    break;
 //
 //                case 'current_and_all_children':
 //                    $arrCategories = array($objPage->id);
-//                    $arrCategories = \Database::getInstance()->getChildRecords($objPage->id, 'tl_page', false, $arrCategories, $strWhere);
+//                    $arrCategories = Database::getInstance()->getChildRecords($objPage->id, 'tl_page', false, $arrCategories, $strWhere);
 //                    $arrCategories = array_diff($arrCategories, $arrUnpublished);
 //                    break;
 //
@@ -575,7 +584,7 @@ class ProductList extends Isotope_ProductList
 //                default:
 //                    if (isset($GLOBALS['ISO_HOOKS']['findCategories']) && is_array($GLOBALS['ISO_HOOKS']['findCategories'])) {
 //                        foreach ($GLOBALS['ISO_HOOKS']['findCategories'] as $callback) {
-//                            $objCallback   = \System::importStatic($callback[0]);
+//                            $objCallback   = System::importStatic($callback[0]);
 //                            $arrCategories = $objCallback->{$callback[1]}($this);
 //
 //                            if ($arrCategories !== false) {
@@ -595,9 +604,12 @@ class ProductList extends Isotope_ProductList
 	
 	/**
 	 * Remove sections of a string using a start and end (use "[caption" and "]" to remove any caption blocks)
-	 * @param  string
-	 * @param  string
-	 * @param  string
+	 * @param string
+	 * @param string
+	 * @param string
+     * @param string
+     * @param bool
+     * @param bool
 	 * @return string
 	 */
 	public static function replaceSectionsOfString($strSubject, $strStart, $strEnd, $strReplace='', $blnCaseSensitive=true, $blnRecursive=true)
