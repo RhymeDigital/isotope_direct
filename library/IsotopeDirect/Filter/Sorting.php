@@ -11,6 +11,12 @@
 
 namespace IsotopeDirect\Filter;
 
+use Contao\Input;
+use Contao\Template;
+use Contao\Module;
+use Contao\System;
+use Contao\Controller;
+use Contao\StringUtil;
 use Isotope\Model\Product;
 use IsotopeDirect\Interfaces\IsotopeDirectFilter;
 
@@ -26,28 +32,28 @@ class Sorting extends Filter implements IsotopeDirectFilter
 	 * @var string
 	 */
 	protected static $strKey = 'sorting';
-	
-	/**
+
+    /**
      * Add this filter to the module's template or get the URL params
-     * @param   array
-     * @param   Contao\Template
-     * @param   Contao\Module
-     * @param   boolean
-     * @return  mixed string|bool|void
+     * @param array $arrCategories
+     * @param Template $objTemplate
+     * @param Module $objModule
+     * @param bool $blnGenURL
+     * @return bool|mixed|string
      */
-	public static function generateFilter(&$arrCategories, &$objTemplate, $objModule, $blnGenURL=false)
+    public static function generateFilter(array &$arrCategories, Template &$objTemplate, Module $objModule, bool $blnGenURL=false)
 	{
-        \System::loadLanguageFile(Product::getTable());
-        \Controller::loadDataContainer(Product::getTable());
+        System::loadLanguageFile(Product::getTable());
+        Controller::loadDataContainer(Product::getTable());
         
-		$arrFields = deserialize($objModule->iso_sortingFields, true);
+		$arrFields = StringUtil::deserialize($objModule->iso_sortingFields, true);
 
     	if($blnGenURL)
     	{
 	    	//return the URL fragment needed for this filter to pass to the lister
-	    	if(\Input::post(static::$strKey) && in_array(str_replace(array('-asc', '-desc'), '', \Input::post(static::$strKey)), $arrFields))
+	    	if (Input::post(static::$strKey) && in_array(str_replace(array('-asc', '-desc'), '', Input::post(static::$strKey)), $arrFields))
 	    	{
-		    	return static::$strKey . '/' . urlencode(\Input::post(static::$strKey));
+		    	return static::$strKey . '/' . urlencode(Input::post(static::$strKey));
 	    	}
 	    	
 	    	return false;
@@ -67,7 +73,7 @@ class Sorting extends Filter implements IsotopeDirectFilter
     	{
 			$objTemplate->hasSorting = true;
 			$objTemplate->sort = $arrAvailable;
-			$objTemplate->sortselected = \Input::get(static::$strKey) ?: ($objModule->iso_listingSortField ? $objModule->iso_listingSortField.'-'.strtolower($objModule->iso_listingSortDirection) : '');
+			$objTemplate->sortselected = Input::get(static::$strKey) ?: ($objModule->iso_listingSortField ? $objModule->iso_listingSortField.'-'.strtolower($objModule->iso_listingSortDirection) : '');
 			$objTemplate->psortLabel = $GLOBALS['TL_LANG']['MSC'][static::$strKey.'FilterLabel'];
     	}
 	}

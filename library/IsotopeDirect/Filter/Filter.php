@@ -12,6 +12,8 @@
 namespace IsotopeDirect\Filter;
 
 use Contao\Cache;
+use Contao\Module;
+use Contao\Template;
 use Contao\Database;
 use Contao\Controller;
 use Contao\StringUtil;
@@ -55,27 +57,27 @@ abstract class Filter extends Controller implements IsotopeDirectFilter
 	{
 		return str_replace('--', ' ', str_replace('||', '/', $value));
 	}
-    
+
     /**
      * Add this filter to the module's template or get the URL params
-     * @param   array
-     * @param   object
-     * @param   array
-     * @param   object
-     * @param   boolean
-     * @return  mixed string|bool|void
+     * @param array $arrCategories
+     * @param Template $objTemplate
+     * @param Module $objModule
+     * @param bool $blnGenURL
+     * @return mixed|void
      */
-	public static function generateFilter(&$arrCategories, &$objTemplate, $objModule, $blnGenURL=false)
+    public static function generateFilter(array &$arrCategories, Template &$objTemplate, Module $objModule, bool $blnGenURL=false)
     {
     }
-	
+
 
     /**
      * Find all available property types and return as array
-     * @param   array
-     * @return  array
+     * @param array $arrCategories
+     * @param array $arrOptions
+     * @return mixed
      */
-    public static function findAllAvailable(&$arrCategories, $arrOptions=[])
+    public static function findAllAvailable(array &$arrCategories, array $arrOptions=[])
     {
     	$strHash = md5(implode(',', $arrCategories));
     	
